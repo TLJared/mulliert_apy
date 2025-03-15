@@ -21,20 +21,39 @@ app.route("/usuarios")
 .get(getUsuario);
 
 const postUsuario = async (request, response) => {
-    const { nombre, apellido, nombreUsuario, email, contrasena } = request.body;
+    const { username, nombreUsuario, apellidoUser, email, contrasena, telefono } = request.body;
 
     try {
         // Encriptar la contraseña
-        const saltRounds = 10;  // Número de rondas para el salt (puedes ajustarlo)
-        const contrasenaEncriptada = await bcrypt.hash(contrasena, saltRounds);  // Encriptamos la contraseña
+        const saltRounds = 10;
+        const contrasenaEncriptada = await bcrypt.hash(contrasena, saltRounds);
 
-        // Insertar los datos en la base de datos
+        // Verificar si el usuario ya existe en la base de datos antes de insertarlo
         connection.query(
-            "INSERT INTO usuarios(nombre, apellido, nombreUsuario, email, contrasena) VALUES (?,?,?,?,?)", 
-            [nombre, apellido, nombreUsuario, email, contrasenaEncriptada],
+            "SELECT * FROM usuarios WHERE email = ?",
+            [email],
             (error, results) => {
-                if (error) throw error;
-                response.status(201).json({ "Usuario añadido correctamente": results.affectedRows });
+                if (error) {
+                    console.error("Error al verificar usuario:", error);
+                    return response.status(500).json({ error: "Error en la consulta de usuario" });
+                }
+
+                if (results.length > 0) {
+                    return response.status(400).json({ error: "El correo ya está registrado" });
+                }
+
+                // Insertar usuario si no existe
+                connection.query(
+                    "INSERT INTO usuarios(username, nombreUsuario, apellidoUser, email, contrasena, telefono) VALUES (?,?,?,?,?,?)",
+                    [username, nombreUsuario, apellidoUser, email, contrasenaEncriptada, telefono],
+                    (insertError, insertResults) => {
+                        if (insertError) {
+                            console.error("Error al insertar usuario:", insertError);
+                            return response.status(500).json({ error: "Error al registrar el usuario" });
+                        }
+                        response.status(201).json({ message: "Usuario añadido correctamente" });
+                    }
+                );
             }
         );
     } catch (error) {
