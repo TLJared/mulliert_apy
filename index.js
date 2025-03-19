@@ -7,6 +7,7 @@ app.use(express.urlencoded({extended: true}));
 
 //cargamos el archivo de rutas
 app.use(require('./routes/usuarios'));
+app.use(require('./routes/productos'));
 
 app.listen(process.env.PORT||3300,() => {
     console.log("Servidor corriendo en el puerto 3300: http://localhost:3300");

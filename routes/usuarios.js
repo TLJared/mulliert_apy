@@ -84,6 +84,7 @@ app.route("/usuarios/:id")
 .delete(delUsuario);
 
 //---------------------------------------------LOGIN DE USUARIOS-------------------------------------------
+//-------------version 2
 const loginUsuario = async (request, response) => {
     const { email, contrasena } = request.body;
   
@@ -100,6 +101,11 @@ const loginUsuario = async (request, response) => {
           }
       
           const usuario = results[0];
+          // Verificacion si la cuenta está activa
+          if (usuario.statusU === 0) {
+            return response.status(403).json({ error: "No se ha dado de alta tu cuenta. Contacta al administrador." });
+          }
+          
           console.log("Contraseña ingresada:", contrasena);
           console.log("Contraseña en BD:", usuario.contrasena);
       
@@ -118,6 +124,48 @@ const loginUsuario = async (request, response) => {
       response.status(500).json({ error: "Error al verificar el usuario" });
     }
   };
+  
+
+
+
+
+
+
+//------------version 1
+// const loginUsuario = async (request, response) => {
+//     const { email, contrasena } = request.body;
+  
+//     try {
+
+//       connection.query(
+//         "SELECT * FROM usuarios WHERE email = ?",
+//         [email],
+//         async (error, results) => {
+//           if (error) throw error;
+      
+//           if (results.length === 0) {
+//             return response.status(400).json({ error: "Usuario no encontrado" });
+//           }
+      
+//           const usuario = results[0];
+//           console.log("Contraseña ingresada:", contrasena);
+//           console.log("Contraseña en BD:", usuario.contrasena);
+      
+//           const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena);
+      
+//           if (!passwordMatch) {
+//             console.log("Las contraseñas no coinciden.");
+//             return response.status(400).json({ error: "Contraseña incorrecta" });
+//           }
+      
+//           response.status(200).json({ message: "Login exitoso", usuario });
+//         }
+//       );
+//     } catch (error) {
+//       console.error("Error al verificar el usuario:", error);
+//       response.status(500).json({ error: "Error al verificar el usuario" });
+//     }
+//   };
   
 
 
