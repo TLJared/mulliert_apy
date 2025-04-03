@@ -61,8 +61,6 @@ const postUsuario = async (request, response) => {
         response.status(500).json({ error: "Error al encriptar la contraseña" });
     }
 };
-
-
 //ruta
 app.route("/usuarios")
 .post(postUsuario);
@@ -83,93 +81,112 @@ const delUsuario = (request, response) => {
 app.route("/usuarios/:id")
 .delete(delUsuario);
 
-//---------------------------------------------LOGIN DE USUARIOS-------------------------------------------
-//-------------version 2
+//----------------------------
 const loginUsuario = async (request, response) => {
-    const { email, contrasena } = request.body;
-  
-    try {
+  const { email, contrasena } = request.body;
 
+  try {
       connection.query(
-        "SELECT * FROM usuarios WHERE email = ?",
-        [email],
-        async (error, results) => {
-          if (error) throw error;
-      
-          if (results.length === 0) {
-            return response.status(400).json({ error: "Usuario no encontrado" });
+          "SELECT * FROM usuarios WHERE email = ?",
+          [email],
+          async (error, results) => {
+              if (error) throw error;
+
+              if (results.length === 0) {
+                  return response.status(400).json({ error: "Usuario no encontrado" });
+              }
+
+              const usuario = results[0];
+
+              if (usuario.statusU === 0) {
+                  return response.status(403).json({ error: "No se ha dado de alta tu cuenta. Contacta al administrador." });
+              }
+
+              const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena);
+
+              if (!passwordMatch) {
+                  return response.status(400).json({ error: "Contraseña incorrecta" });
+              }
+
+              response.status(200).json({
+                  message: "Login exitoso",
+                  usuario: {
+                      id: usuario.id,
+                      nombreUsuario: usuario.nombreUsuario,
+                      email: usuario.email,
+                      rol: usuario.rol // Se envía el rol del usuario
+                  }
+              });
           }
-      
-          const usuario = results[0];
-          // Verificacion si la cuenta está activa
-          if (usuario.statusU === 0) {
-            return response.status(403).json({ error: "No se ha dado de alta tu cuenta. Contacta al administrador." });
-          }
-          
-          console.log("Contraseña ingresada:", contrasena);
-          console.log("Contraseña en BD:", usuario.contrasena);
-      
-          const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena);
-      
-          if (!passwordMatch) {
-            console.log("Las contraseñas no coinciden.");
-            return response.status(400).json({ error: "Contraseña incorrecta" });
-          }
-      
-          response.status(200).json({ message: "Login exitoso", usuario });
-        }
       );
-    } catch (error) {
+  } catch (error) {
       console.error("Error al verificar el usuario:", error);
       response.status(500).json({ error: "Error al verificar el usuario" });
-    }
-  };
-  
-
-
-
-
-
-
-//------------version 1
-// const loginUsuario = async (request, response) => {
-//     const { email, contrasena } = request.body;
-  
-//     try {
-
-//       connection.query(
-//         "SELECT * FROM usuarios WHERE email = ?",
-//         [email],
-//         async (error, results) => {
-//           if (error) throw error;
-      
-//           if (results.length === 0) {
-//             return response.status(400).json({ error: "Usuario no encontrado" });
-//           }
-      
-//           const usuario = results[0];
-//           console.log("Contraseña ingresada:", contrasena);
-//           console.log("Contraseña en BD:", usuario.contrasena);
-      
-//           const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena);
-      
-//           if (!passwordMatch) {
-//             console.log("Las contraseñas no coinciden.");
-//             return response.status(400).json({ error: "Contraseña incorrecta" });
-//           }
-      
-//           response.status(200).json({ message: "Login exitoso", usuario });
-//         }
-//       );
-//     } catch (error) {
-//       console.error("Error al verificar el usuario:", error);
-//       response.status(500).json({ error: "Error al verificar el usuario" });
-//     }
-//   };
-  
-
+  }
+};
 
 
   // Ruta para login
   app.route("/login").post(loginUsuario);
+
+
+  
+//Ruta para actualizar permiso de acceso al usuario
+const updateUsuarioStatus = (request, response) => {
+  const id = request.params.id;
+  const { statusU } = request.body;
+
+  connection.query(
+      "UPDATE usuarios SET statusU = ? WHERE id = ?",
+      [statusU, id],
+      (error, results) => {
+          if (error) {
+              console.error("Error al actualizar el usuario:", error);
+              return response.status(500).json({ error: "Error al actualizar el usuario" });
+          }
+
+          if (results.affectedRows === 0) {
+              return response.status(404).json({ error: "Usuario no encontrado" });
+          }
+
+          response.status(200).json({ message: "Usuario actualizado correctamente" });
+      }
+  );
+};
+
+app.route("/usuarios/:id")
+  .put(updateUsuarioStatus);
+//-----------------------------
+
+// 🚀 **Nueva función para actualizar el rol del usuario**
+const updateUserRole = (request, response) => {
+  const id = request.params.id;
+  const { rol } = request.body;
+
+  if (!rol || !["admin", "operador"].includes(rol)) {
+      return response.status(400).json({ error: "Rol inválido" });
+  }
+
+  connection.query(
+      "UPDATE usuarios SET rol = ? WHERE id = ?",
+      [rol, id],
+      (error, results) => {
+          if (error) {
+              console.error("Error al actualizar el rol del usuario:", error);
+              return response.status(500).json({ error: "Error al actualizar el rol" });
+          }
+
+          if (results.affectedRows === 0) {
+              return response.status(404).json({ error: "Usuario no encontrado" });
+          }
+
+          response.status(200).json({ message: "Rol actualizado correctamente" });
+      }
+  );
+};
+
+// Nueva ruta para actualizar el rol del usuario
+app.route("/usuarios/:id/rol").put(updateUserRole);
+
+
 module.exports = app;
