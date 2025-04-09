@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 dotenv.config();
-const bcrypt = require('bcrypt');
 app.use(express.json());
 //conexión con la base de datos
 const {connection} = require("../config.db");
@@ -15,6 +14,9 @@ const getProducts = (request, response) => {
         response.status(200).json(results);
     });
 };
+//ruta
+app.route("/productos")
+.get(getProducts);
 
 const searchProducts = (request, response) => {
     const search = request.query.search; // Obtener el parámetro de búsqueda
@@ -35,11 +37,6 @@ const searchProducts = (request, response) => {
 // Ruta
 app.route("/productos")
    .get(searchProducts);
-
-
-//ruta
-app.route("/productos")
-.get(getProducts);
 
 // POST Producto (sin imagen)
 const postProducts = async (request, response) => {
