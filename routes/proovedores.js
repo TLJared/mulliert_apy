@@ -8,7 +8,7 @@ app.use(express.json());
 const {connection} = require("../config.db");
 
 const getproviders = (request, response) => {
-    connection.query("SELECT * FROM proovedores WHERE activo = 1", 
+    connection.query("SELECT * FROM proovedores", 
     (error, results) => {
         if(error)
             throw error;
@@ -20,20 +20,6 @@ const getproviders = (request, response) => {
 app.route("/proovedores")
 .get(getproviders);
 
-
-
-const getprovidersActivos = (request, response) => {
-    connection.query("SELECT * FROM proovedores WHERE activo = 1", 
-    (error, results) => {
-        if(error)
-            throw error;
-        response.status(200).json(results);
-    });
-};
-
-//ruta
-app.route("/proovedores")
-.get(getprovidersActivos);
 
 //ruta para insertar un nuevo proveedor
 const postProviders = async (request, response) => {
@@ -92,9 +78,8 @@ const delProviders = (request, response) => {
 app.route("/proovedores/:id")
 .delete(delProviders);
 
-
-//Ruta para actualizar activo de un proveedor
-const updateProvedorStatus = (request, response) => {
+//Ruta para actualizar permiso de acceso al usuario
+const updateProovedorActivo = (request, response) => {
   const id = request.params.id;
   const { activo } = request.body;
 
@@ -103,20 +88,35 @@ const updateProvedorStatus = (request, response) => {
       [activo, id],
       (error, results) => {
           if (error) {
-              console.error("Error al actualizar el proovedor:", error);
-              return response.status(500).json({ error: "Error al actualizar el proovedor" });
+              console.error("Error al activar proovedor!:", error);
+              return response.status(500).json({ error: "Error al activar proovedor." });
           }
 
           if (results.affectedRows === 0) {
-              return response.status(404).json({ error: "proovedor no encontrado" });
+              return response.status(404).json({ error: "Proovedor no encontrado" });
           }
 
-          response.status(200).json({ message: "Proovedor actualizado correctamente" });
+          response.status(200).json({ message: "Se ha modificando el estado (activo) correctamente!" });
       }
   );
 };
 
 app.route("/proovedores/:id")
-  .put(updateProvedorStatus);
+  .put(updateProovedorActivo);
 
-  module.exports = app;
+
+
+  const getprovidersActivos = (request, response) => {
+    connection.query("SELECT * FROM proovedores WHERE activo = 1", 
+    (error, results) => {
+        if(error)
+            throw error;
+        response.status(200).json(results);
+    });
+};
+
+//ruta
+app.route("/proovedores/activos")
+.get(getprovidersActivos);
+
+module.exports = app;
