@@ -158,7 +158,7 @@ app.route("/usuarios/:id")
   .put(updateUsuarioStatus);
 //-----------------------------
 
-// 🚀 **Nueva función para actualizar el rol del usuario**
+// función para actualizar el rol del usuario
 const updateUserRole = (request, response) => {
   const id = request.params.id;
   const { rol } = request.body;
@@ -185,7 +185,7 @@ const updateUserRole = (request, response) => {
   );
 };
 
-// Nueva ruta para actualizar el rol del usuario
+// actualizar el rol del usuario
 app.route("/usuarios/:id/rol").put(updateUserRole);
 
 

@@ -46,7 +46,7 @@ app.route("/uso-materiales").get(getUsoMateriales);
 const registrarUsoMaterial = (request, response) => {
     const { tarea_id, producto_id, usuario_id, cantidad_usada } = request.body;
 
-    // Validación básica
+    // Validación
     if (!tarea_id || !producto_id || !usuario_id || !cantidad_usada || cantidad_usada <= 0) {
         return response.status(400).json({ error: "Datos incompletos o inválidos" });
     }

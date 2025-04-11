@@ -16,8 +16,3 @@ app.listen(process.env.PORT||3300,() => {
 });
 
 module.exports = app;
-
-
-
-
-// app.use("/uploads", express.static("uploads"));

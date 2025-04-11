@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const bcrypt = require('bcrypt');
 app.use(express.json());
-//conexión con la base de datos
+
 const {connection} = require("../config.db");
 
 const getproviders = (request, response) => {
@@ -21,7 +21,7 @@ app.route("/proovedores")
 .get(getproviders);
 
 
-//ruta para insertar un nuevo proveedor
+//ruta para insertar 
 const postProviders = async (request, response) => {
     const { nombre, apellidos, direccion, telefono, celular, email} = request.body;
 
